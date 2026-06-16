@@ -189,10 +189,17 @@
         });
     }
 
+    function closeGate() {
+      var gate = document.getElementById("gate");
+      if (gate) { gate.classList.add("fade-out"); setTimeout(function(){ gate.remove(); }, 380); }
+    }
+
     function unlock() {
       sessionStorage.setItem("ke_auth","1");
       document.getElementById("pin-ui").classList.add("hidden");
       document.getElementById("load-ui").classList.add("visible");
+      // Si React ya montó mientras el usuario ingresaba el PIN, cerramos el gate ahora
+      if (window.__appMounted) closeGate();
     }
 
     function tryPin() {
@@ -244,10 +251,14 @@
       });
     }
 
-    // Exponer __hideSplash para que App() lo llame al montar
+    // __hideSplash es llamado por App() al montar.
+    // Solo cierra el gate si el PIN ya fue validado; si no, marca que la app montó
+    // y deja que unlock() lo cierre cuando el usuario ingrese el código.
     window.__hideSplash = function() {
-      var gate = document.getElementById("gate");
-      if (gate) { gate.classList.add("fade-out"); setTimeout(function(){ gate.remove(); }, 380); }
+      window.__appMounted = true;
+      var pinUi = document.getElementById("pin-ui");
+      if (pinUi && !pinUi.classList.contains("hidden")) return; // PIN todavía no ingresado
+      closeGate();
     };
   })();
   </script>
