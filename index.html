@@ -26,40 +26,142 @@
   <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"></script>
   <!-- JSZip para export ZIP -->
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <!-- mp4-muxer + WebCodecs (reel export) -->
+  <!-- mp4-muxer para reel export -->
   <script src="https://cdn.jsdelivr.net/npm/mp4-muxer@4.5.1/build/mp4-muxer.umd.min.js"></script>
 
   <style>
-    /* layout base antes de que cargue generator.css */
-    html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+    html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #2D2926; }
     #root { height: 100%; display: flex; flex-direction: column; }
-    #splash {
-      position: fixed; inset: 0; background: #2D2926;
+
+    /* ── PIN / Splash overlay ───────────────────────────────── */
+    #gate {
+      position: fixed; inset: 0; z-index: 9999;
+      background: #2D2926;
       display: flex; align-items: center; justify-content: center;
-      flex-direction: column; gap: 16px; z-index: 9999;
-      transition: opacity .4s;
+      flex-direction: column;
+      transition: opacity .35s ease;
     }
-    #splash svg { width: 72px; height: 72px; }
-    #splash p { color: rgba(255,255,255,.6); font-family: system-ui,sans-serif; font-size: 14px; margin: 0; }
-    #splash.hidden { opacity: 0; pointer-events: none; }
+    #gate.fade-out { opacity: 0; pointer-events: none; }
+
+    /* Logo */
+    #gate .g-logo {
+      width: 72px; height: 72px; margin-bottom: 28px;
+    }
+
+    /* ── Fase PIN ─────────────────────────────────────────────── */
+    #pin-ui { display: flex; flex-direction: column; align-items: center; gap: 28px; }
+    #pin-ui.hidden { display: none; }
+
+    .pin-hint {
+      color: rgba(255,255,255,.55);
+      font-family: system-ui, sans-serif;
+      font-size: 13px; letter-spacing: .06em; text-transform: uppercase;
+    }
+
+    /* 4 círculos indicadores */
+    .pin-dots {
+      display: flex; gap: 18px;
+    }
+    .pin-dot {
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,.35);
+      background: transparent;
+      transition: background .15s, border-color .15s, transform .1s;
+    }
+    .pin-dot.filled {
+      background: #F40000; border-color: #F40000;
+      transform: scale(1.1);
+    }
+    .pin-dot.err {
+      background: #F40000; border-color: #F40000;
+    }
+
+    /* Teclado numérico */
+    .pin-pad {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+      width: 240px;
+    }
+    .pin-key {
+      height: 64px; border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.07);
+      color: #fff;
+      font-family: system-ui, sans-serif;
+      font-size: 22px; font-weight: 600;
+      cursor: pointer; user-select: none;
+      transition: background .1s, transform .08s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .pin-key:active, .pin-key.pressed { background: rgba(255,255,255,.18); transform: scale(.94); }
+    .pin-key.del { font-size: 18px; }
+    .pin-key.empty { pointer-events: none; background: transparent; border-color: transparent; }
+
+    /* Animación shake (error) */
+    @keyframes shake {
+      0%,100%{transform:translateX(0)}
+      18%{transform:translateX(-8px)}
+      36%{transform:translateX(8px)}
+      54%{transform:translateX(-6px)}
+      72%{transform:translateX(6px)}
+      90%{transform:translateX(-3px)}
+    }
+    .pin-dots.shake { animation: shake .4s ease; }
+
+    /* ── Fase carga ───────────────────────────────────────────── */
+    #load-ui { display: none; flex-direction: column; align-items: center; gap: 12px; }
+    #load-ui.visible { display: flex; }
+    #load-ui p {
+      color: rgba(255,255,255,.5);
+      font-family: system-ui, sans-serif; font-size: 13px; margin: 0;
+    }
   </style>
 </head>
 <body>
-  <!-- Splash mientras carga -->
-  <div id="splash">
-    <svg viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Pantalla de acceso (PIN + carga) -->
+  <div id="gate">
+    <svg class="g-logo" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
       <rect width="192" height="192" rx="40" fill="#F40000"/>
       <text x="96" y="108" font-family="system-ui,sans-serif" font-weight="900"
         font-style="italic" font-size="80" fill="#fff" text-anchor="middle">KE</text>
       <text x="96" y="145" font-family="system-ui,sans-serif" font-weight="700"
         font-size="22" letter-spacing="4" fill="#FFD400" text-anchor="middle">PLACAS</text>
     </svg>
-    <p>Cargando…</p>
+
+    <!-- Fase 1: PIN -->
+    <div id="pin-ui">
+      <p class="pin-hint">Ingresá tu código</p>
+      <div class="pin-dots" id="pin-dots">
+        <span class="pin-dot" id="d0"></span>
+        <span class="pin-dot" id="d1"></span>
+        <span class="pin-dot" id="d2"></span>
+        <span class="pin-dot" id="d3"></span>
+      </div>
+      <div class="pin-pad">
+        <button class="pin-key" data-n="1">1</button>
+        <button class="pin-key" data-n="2">2</button>
+        <button class="pin-key" data-n="3">3</button>
+        <button class="pin-key" data-n="4">4</button>
+        <button class="pin-key" data-n="5">5</button>
+        <button class="pin-key" data-n="6">6</button>
+        <button class="pin-key" data-n="7">7</button>
+        <button class="pin-key" data-n="8">8</button>
+        <button class="pin-key" data-n="9">9</button>
+        <button class="pin-key empty"></button>
+        <button class="pin-key" data-n="0">0</button>
+        <button class="pin-key del" id="pin-del">⌫</button>
+      </div>
+    </div>
+
+    <!-- Fase 2: cargando app -->
+    <div id="load-ui">
+      <p>Cargando…</p>
+    </div>
   </div>
 
   <div id="root"></div>
 
-  <!-- Recursos globales: logos -->
+  <!-- Recursos globales -->
   <script>
     window.__resources = {
       logoWhite: "assets/logo-white.svg",
@@ -68,24 +170,98 @@
     };
   </script>
 
+  <!-- PIN lock logic -->
+  <script>
+  (function() {
+    var H = "4103f0a4e707b1c7bebbc42809ab0ace8dd3f56d844d7903bfe9f95a2ccc6972";
+    var buf = "";
+    var dots = [0,1,2,3].map(function(i){ return document.getElementById("d"+i); });
+    var dotsEl = document.getElementById("pin-dots");
+
+    function updateDots() {
+      dots.forEach(function(d,i){ d.classList.toggle("filled", i < buf.length); });
+    }
+
+    function sha256hex(str) {
+      return crypto.subtle.digest("SHA-256", new TextEncoder().encode(str))
+        .then(function(ab){
+          return Array.from(new Uint8Array(ab)).map(function(b){ return b.toString(16).padStart(2,"0"); }).join("");
+        });
+    }
+
+    function unlock() {
+      sessionStorage.setItem("ke_auth","1");
+      document.getElementById("pin-ui").classList.add("hidden");
+      document.getElementById("load-ui").classList.add("visible");
+    }
+
+    function tryPin() {
+      var attempt = buf;
+      buf = "";
+      updateDots();
+      sha256hex(attempt).then(function(h){
+        if (h === H) {
+          unlock();
+        } else {
+          dotsEl.classList.add("shake");
+          dots.forEach(function(d){ d.classList.add("err"); });
+          setTimeout(function(){
+            dotsEl.classList.remove("shake");
+            dots.forEach(function(d){ d.classList.remove("err","filled"); });
+          }, 500);
+        }
+      });
+    }
+
+    function pressKey(n) {
+      if (buf.length >= 4) return;
+      buf += n;
+      updateDots();
+      if (buf.length === 4) setTimeout(tryPin, 80);
+    }
+
+    function pressBack() {
+      buf = buf.slice(0,-1);
+      updateDots();
+    }
+
+    // Si la sesión ya está autorizada, saltar directo a carga
+    if (sessionStorage.getItem("ke_auth") === "1") {
+      unlock();
+    } else {
+      // Teclado numérico táctil
+      document.querySelectorAll(".pin-key[data-n]").forEach(function(btn){
+        btn.addEventListener("click", function(){ pressKey(btn.getAttribute("data-n")); });
+        btn.addEventListener("touchend", function(e){ e.preventDefault(); pressKey(btn.getAttribute("data-n")); });
+      });
+      document.getElementById("pin-del").addEventListener("click", pressBack);
+      document.getElementById("pin-del").addEventListener("touchend", function(e){ e.preventDefault(); pressBack(); });
+
+      // Teclado físico
+      document.addEventListener("keydown", function(e){
+        if (e.key >= "0" && e.key <= "9") pressKey(e.key);
+        if (e.key === "Backspace") pressBack();
+      });
+    }
+
+    // Exponer __hideSplash para que App() lo llame al montar
+    window.__hideSplash = function() {
+      var gate = document.getElementById("gate");
+      if (gate) { gate.classList.add("fade-out"); setTimeout(function(){ gate.remove(); }, 380); }
+    };
+  })();
+  </script>
+
   <!-- Registro del service worker -->
   <script>
     if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("sw.js").catch(e => console.warn("SW:", e));
+      window.addEventListener("load", function() {
+        navigator.serviceWorker.register("sw.js").catch(function(e){ console.warn("SW:", e); });
       });
     }
   </script>
 
-  <!-- Ocultar splash cuando la app esté lista -->
-  <script>
-    window.__hideSplash = function() {
-      const el = document.getElementById("splash");
-      if (el) { el.classList.add("hidden"); setTimeout(() => el.remove(), 450); }
-    };
-  </script>
-
-  <!-- JSX source files — cargados en orden por Babel standalone -->
+  <!-- JSX source files -->
   <script type="text/babel" src="src/tweaks-panel.jsx"></script>
   <script type="text/babel" src="src/placa.jsx"></script>
   <script type="text/babel" src="src/catalog.jsx"></script>
