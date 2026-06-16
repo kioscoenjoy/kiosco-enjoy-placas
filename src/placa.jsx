@@ -643,7 +643,7 @@ function ContentStack({ cfg, s, W, H }) {
   const titleSize = cfg.titleFontSize || (tall ? { m: 104, l: 132, xl: 168 } : { m: 88, l: 116, xl: 150 })[s.title] || 116;
   const titleCol = txCol(cfg.titleColor, c.fg);
   const subCol = txCol(cfg.subColor, c.sub);
-  const handleCol = txCol(cfg.handleColor, c.muted);
+  // handle @ eliminado
 
   return (
     <div style={st}>
@@ -674,11 +674,6 @@ function ContentStack({ cfg, s, W, H }) {
           </DragHandle>
         );
       })()}
-      {cfg.handle && s.handle !== false && txOn(cfg, "handle") ? (
-        <DragHandle offKey="handleOff">
-          <span style={{ color: handleCol, fontWeight: 700, fontSize: cfg.handleFontSize || (tall ? 32 : 28), marginTop: 4 }}>{cfg.handle}</span>
-        </DragHandle>
-      ) : null}
     </div>
   );
 }

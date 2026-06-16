@@ -38,7 +38,7 @@ const I = {
   star: ["M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"],
   list: ["M8 6h13","M8 12h13","M8 18h13","M3 6h.01","M3 12h.01","M3 18h.01"],
 };
-const CATICONS = { precio:I.botl, combo:I.combo, info:I.clck };
+const CATICONS = { oferta:I.botl, lista:I.list, tematico:I.clck };
 function Ic({ d, size=16, cls="" }) {
   return (
     <svg className={"ic"+(cls?" "+cls:"")} width={size} height={size} viewBox="0 0 24 24"
@@ -392,7 +392,7 @@ function ElementPanel({ cfg, patch, W, H, patchBgView, patchPhotoView, onBgFile,
 
   // section: undefined=todo, "content"=texto/precio/foto, "media"=fondo/logo/handle
   const inContent = ["rows","title","price","subtitle","badge","cta","photo"];
-  const inMedia   = ["bgImage","logo","handle"];
+  const inMedia   = ["bgImage","logo"];
   function showEl(k) {
     if (!section) return true;
     return section === "content" ? inContent.includes(k) : inMedia.includes(k);
@@ -617,15 +617,7 @@ function ElementPanel({ cfg, patch, W, H, patchBgView, patchPhotoView, onBgFile,
         </ElementCard>
       ) : null}
 
-      {/* Handle @ */}
-      {showEl("handle") ? (
-        <ElementCard label="Handle @" ekey="handle" openEl={openEl} onToggle={toggleOpen}
-          isOn={cfg.handleShow !== false} onToggleOn={v=>patch({handleShow:v})}>
-          <div className="ep-fhead"><BrandPicker sm v={cfg.handleColor} on={v=>patch({handleColor:v})}/></div>
-          <input className="cp-in" value={cfg.handle||""} placeholder="@kioscoenjoy"
-            onChange={e=>patch({handle:e.target.value})}/>
-        </ElementCard>
-      ) : null}
+      {/* Handle @ eliminado — siempre es @kioscoenjoy, se renderiza fijo en placa.jsx */}
     </div>
   );
 }
@@ -741,8 +733,8 @@ const TDEFS = {studio:"claro"};
 function App() {
   useEffect(() => { window.__hideSplash && window.__hideSplash(); }, []);
   const [t] = useTweaks(TDEFS);
-  const [fmt, setFmt]     = useState("carrusel");
-  const [cRatio, setCR]   = useState("1:1");
+  const [fmt, setFmt]     = useState("placa");
+  const [cRatio, setCR]   = useState("4:5");
   const [slides, setSlides] = useState([freshCfg()]);
   const [active, setActive] = useState(0);
   const [scale, setScale]   = useState(0.4);
@@ -758,7 +750,7 @@ function App() {
   const [liveXY, setLiveXY] = useState(null);
   const [canUndo, setCanU]  = useState(false);
   const [canRedo, setCanR]  = useState(false);
-  const [reelCat, setRC]    = useState("precio");
+  const [reelCat, setRC]    = useState("oferta");
   const [reelTmpl, setRT]   = useState("precio-estalla");
   const [mobTab, setMobTab] = useState("canvas");
   const stageRef=useRef(null), placaRef=useRef(null);
@@ -808,13 +800,13 @@ function App() {
     document.addEventListener("keydown",fn);return()=>document.removeEventListener("keydown",fn);
   },[undo,redo]);
 
-  const OFFKEYS=["titleOff","subOff","priceOff","ctaOff","handleOff","logoOff","badgeOff","burstOff"];
+  const OFFKEYS=["titleOff","subOff","priceOff","ctaOff","logoOff","badgeOff","burstOff"];
   const applyTmpl=useCallback(item=>{
     const it=item.cfg,ns=(it.struct&&it.struct.photo)||"none";
-    const isPreFilled = item.cat === "info";
+    // Para plantillas "tematico" (pre-cargadas como Horarios KE, Datita): usar contenido de la plantilla
+    const isPreFilled = item.cat === "tematico";
     const next={
       ...it,
-      // Para plantillas "info" (pre-cargadas): usar contenido de la plantilla; para otras: conservar el del usuario
       title:isPreFilled?it.title:cfg.title,
       subtitle:isPreFilled?it.subtitle:cfg.subtitle,
       badge:isPreFilled?it.badge:cfg.badge,
@@ -823,7 +815,6 @@ function App() {
       priceUnit:isPreFilled?it.priceUnit:cfg.priceUnit,
       priceStrike:isPreFilled?it.priceStrike:cfg.priceStrike,
       cta:isPreFilled?it.cta:cfg.cta,
-      handle:isPreFilled?it.handle:cfg.handle,
       rows:isPreFilled?it.rows:cfg.rows,
       badgeStyle:isPreFilled?it.badgeStyle:cfg.badgeStyle,
       badgeShow:isPreFilled?it.badgeShow:cfg.badgeShow,
@@ -831,10 +822,10 @@ function App() {
       logoShow:cfg.logoShow,logoPos:cfg.logoPos,logoColor:cfg.logoColor,logoSize:cfg.logoSize,
       bgImage:cfg.bgImage,bgView:cfg.bgView,bgInk:cfg.bgInk,
       titleColor:cfg.titleColor,subColor:cfg.subColor,priceColor:cfg.priceColor,
-      ctaColor:cfg.ctaColor,handleColor:cfg.handleColor,
-      titleShow:cfg.titleShow,subShow:cfg.subShow,ctaShow:cfg.ctaShow,handleShow:cfg.handleShow,
+      ctaColor:cfg.ctaColor,
+      titleShow:cfg.titleShow,subShow:cfg.subShow,ctaShow:cfg.ctaShow,
       titleFontSize:cfg.titleFontSize,subFontSize:cfg.subFontSize,
-      ctaFontSize:cfg.ctaFontSize,handleFontSize:cfg.handleFontSize,
+      ctaFontSize:cfg.ctaFontSize,
       priceFontSize:cfg.priceFontSize,badgeFontSize:cfg.badgeFontSize,
     };
     if(cfg.photo&&ns!=="none"){next.photo=cfg.photo;next.photoView=cfg.photoView;}
