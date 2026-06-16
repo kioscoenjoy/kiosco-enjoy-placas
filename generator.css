@@ -1208,3 +1208,115 @@ textarea.txt{resize:vertical;min-height:62px;line-height:1.35;}
   }
 }
 .live-coords-badge strong { color: var(--promo); }
+
+/* ── Category pills (horizontal scroll) ─────────────────────────────────── */
+.cat-pills-scroll {
+  flex: 0 0 auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 8px 10px 4px;
+  border-bottom: 1px solid var(--border);
+}
+.cat-pills-scroll::-webkit-scrollbar { display: none; }
+.cat-pills {
+  display: flex;
+  gap: 6px;
+  min-width: max-content;
+}
+.cat-pill {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 11px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--fg2);
+  font-size: 12px; font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .12s, border-color .12s, color .12s;
+}
+.cat-pill em {
+  font-style: normal; font-size: 10px; font-weight: 800;
+  color: var(--fg3); background: var(--ink-100);
+  border-radius: 99px; padding: 1px 5px; margin-left: 2px;
+}
+.cat-pill.is-on {
+  background: var(--accent); border-color: var(--accent); color: #fff;
+}
+.cat-pill.is-on em {
+  background: rgba(255,255,255,.25); color: #fff;
+}
+.cat-pill:hover:not(.is-on) {
+  background: var(--ink-100); border-color: var(--fg3);
+}
+/* Datos category card highlight */
+.tmpl-card-datos .tmpl-thumb {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+.app[data-studio="oscuro"] .cat-pill { color: var(--ink-400); border-color: var(--border); }
+.app[data-studio="oscuro"] .cat-pill em { background: var(--ink-700); color: var(--ink-400); }
+.app[data-studio="oscuro"] .cat-pill:hover:not(.is-on) { background: var(--ink-700); }
+
+/* ── QuickPanel ──────────────────────────────────────────────────────────── */
+.qp-scroll {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  padding: 12px 14px 24px;
+  display: flex; flex-direction: column; gap: 0;
+}
+.qp-photo-row {
+  display: flex; gap: 8px; margin-top: 10px;
+}
+.qp-photo-btn {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  height: 36px;
+  border: 1.5px dashed var(--border);
+  border-radius: var(--r-btn);
+  background: var(--ink-50);
+  color: var(--fg2);
+  font-size: 12px; font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background .12s, border-color .12s;
+}
+.qp-photo-btn:hover { background: var(--ink-100); border-color: var(--fg3); }
+.qp-photo-btn.is-has {
+  border-style: solid;
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--red-50);
+}
+.qp-adv-toggle {
+  display: block; width: 100%;
+  margin: 10px 0 0;
+  padding: 9px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-btn);
+  background: var(--ink-50);
+  color: var(--fg2);
+  font-size: 12px; font-weight: 800;
+  font-family: var(--font-body);
+  text-align: left; cursor: pointer;
+  transition: background .12s;
+  letter-spacing: .02em;
+}
+.qp-adv-toggle:hover { background: var(--ink-100); }
+.app[data-studio="oscuro"] .qp-scroll { /* inherits from cp-scroll styles */ }
+.app[data-studio="oscuro"] .qp-photo-btn { background: var(--ink-700); border-color: var(--border); }
+.app[data-studio="oscuro"] .qp-photo-btn.is-has { background: #2a1716; border-color: var(--accent); }
+.app[data-studio="oscuro"] .qp-adv-toggle { background: var(--ink-700); border-color: var(--border); }
+
+/* Remove old sidebar-style cats */
+.tmpl-panel {
+  display: flex !important;
+  flex-direction: column !important;
+}
+/* Override old tmpl-cats if still referenced */
+.tmpl-cats { display: none !important; }
+
+/* ── Mobile 4 tabs ───────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .mob-tab-bar button { font-size: 9px; }
+}

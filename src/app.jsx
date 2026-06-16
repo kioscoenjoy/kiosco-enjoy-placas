@@ -38,7 +38,7 @@ const I = {
   star: ["M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"],
   list: ["M8 6h13","M8 12h13","M8 18h13","M3 6h.01","M3 12h.01","M3 18h.01"],
 };
-const CATICONS = { oferta:I.flame,producto:I.botl,combo:I.combo,frase:I.quot,info:I.clck,mundial:I.star,lista:I.list };
+const CATICONS = { datos:I.pin,oferta:I.flame,producto:I.botl,combo:I.combo,frase:I.quot,info:I.clck,mundial:I.star,lista:I.list };
 function Ic({ d, size=16, cls="" }) {
   return (
     <svg className={"ic"+(cls?" "+cls:"")} width={size} height={size} viewBox="0 0 24 24"
@@ -216,9 +216,7 @@ async function captureSlide(cfg, W, H, pr=1) {
   document.body.appendChild(host);
   const root=ReactDOM.createRoot(host);
   root.render(React.createElement(Placa,{cfg,W,H,editor:false}));
-  await new Promise(r=>setTimeout(r,220));
-  try{await document.fonts.ready;}catch(e){}
-  await new Promise(r=>setTimeout(r,80));
+  await document.fonts.ready.catch(()=>{});
   const node=host.firstChild;
   try {
     const PFX="data:image/svg+xml;charset=utf-8,";
@@ -264,14 +262,25 @@ function TemplatePanel({ baseCfg, W, H, onApply }) {
     ? TEMPLATE_LIST.filter(it=>(it.name+" "+(it.cfg.title||"")).toLowerCase().includes(tq))
     : (CATALOG[cat]||[]);
 
+  // Para plantillas "datos": mostrá el contenido pre-cargado de la plantilla (no del cfg actual)
   function mkCfg(item) {
     const it=item.cfg, ns=(it.struct&&it.struct.photo)||"none";
+    const isDatos = item.cat === "datos";
     return {
       ...it,
-      title:baseCfg.title, subtitle:baseCfg.subtitle, badge:baseCfg.badge,
-      priceEyebrow:baseCfg.priceEyebrow, priceMain:baseCfg.priceMain, priceUnit:baseCfg.priceUnit,
-      priceStrike:baseCfg.priceStrike, cta:baseCfg.cta, handle:baseCfg.handle, rows:baseCfg.rows,
-      badgeStyle:baseCfg.badgeStyle, badgeShow:baseCfg.badgeShow, showPrice:baseCfg.showPrice,
+      title:isDatos?it.title:baseCfg.title,
+      subtitle:isDatos?it.subtitle:baseCfg.subtitle,
+      badge:isDatos?it.badge:baseCfg.badge,
+      priceEyebrow:isDatos?it.priceEyebrow:baseCfg.priceEyebrow,
+      priceMain:isDatos?it.priceMain:baseCfg.priceMain,
+      priceUnit:isDatos?it.priceUnit:baseCfg.priceUnit,
+      priceStrike:isDatos?it.priceStrike:baseCfg.priceStrike,
+      cta:isDatos?it.cta:baseCfg.cta,
+      handle:isDatos?it.handle:baseCfg.handle,
+      rows:isDatos?it.rows:baseCfg.rows,
+      badgeStyle:isDatos?it.badgeStyle:baseCfg.badgeStyle,
+      badgeShow:isDatos?it.badgeShow:baseCfg.badgeShow,
+      showPrice:baseCfg.showPrice,
       logoShow:baseCfg.logoShow, logoPos:baseCfg.logoPos, logoColor:baseCfg.logoColor, logoSize:baseCfg.logoSize,
       bgImage:baseCfg.bgImage, bgView:baseCfg.bgView,
       titleColor:baseCfg.titleColor, subColor:baseCfg.subColor,
@@ -293,20 +302,22 @@ function TemplatePanel({ baseCfg, W, H, onApply }) {
         </div>
       </div>
       {!tq?(
-        <div className="tmpl-cats">
-          {CATEGORIES.map(c=>(
-            <button key={c.key} className={"tmpl-cat"+(cat===c.key?" is-on":"")} onClick={()=>setCat(c.key)}>
-              <Ic d={CATICONS[c.key]||I.sq} size={13}/>
-              <span>{c.name}</span>
-              <em>{(CATALOG[c.key]||[]).length}</em>
-            </button>
-          ))}
+        <div className="cat-pills-scroll">
+          <div className="cat-pills">
+            {CATEGORIES.map(c=>(
+              <button key={c.key} className={"cat-pill"+(cat===c.key?" is-on":"")} onClick={()=>setCat(c.key)}>
+                <Ic d={CATICONS[c.key]||I.sq} size={12}/>
+                {c.name}
+                <em>{(CATALOG[c.key]||[]).length}</em>
+              </button>
+            ))}
+          </div>
         </div>
       ):null}
       <div className="tmpl-scroll">
         <div className="tmpl-grid">
           {items.map(it=>(
-            <button key={it.id} className="tmpl-card" title={it.name} onClick={()=>onApply(it)}>
+            <button key={it.id} className={"tmpl-card"+(it.cat==="datos"?" tmpl-card-datos":"")} title={it.name} onClick={()=>onApply(it)}>
               <MiniPlaca cfg={mkCfg(it)} W={W} H={H} cls="tmpl-thumb"/>
               <span className="tmpl-name">{it.name}</span>
             </button>
@@ -669,11 +680,220 @@ function PosPanel({ sel, cfg, W, H, scale, locked, toggleLock, patch, setSel }) 
   );
 }
 
+/* ── QuickPanel — panel único de edición rápida ──────────────────────────── */
+function QuickPanel({ cfg, patch, W, H, sel, setSel, scale, locked, toggleLock, patchPos,
+                      patchBgView, patchPhotoView, onBgFile, onPhotoFile, advOpen, setAdvOpen }) {
+  const bgRef = useRef(null), phRef = useRef(null);
+  const s = cfg.struct || {};
+  const isList = s.kind === "list" || s.kind === "grid";
+  const hasPrice = !isList && s.price !== "none";
+
+  return (
+    <div className="qp-scroll">
+      {/* ── Campos rápidos ── */}
+      {isList ? (
+        <div className="cp-sec">
+          <TF cfg={cfg} patch={patch} label="Título" fk="title" sk="titleShow" ck="titleColor" multi szKey="titleFontSize" szDef={116} szMin={32} szMax={320}/>
+          <div className="cp-sec-lbl" style={{marginTop:14,marginBottom:6}}>FILAS</div>
+          {(cfg.rows||[]).map((r,i)=>(
+            <div key={i} className="cp-row-item">
+              <span className="cp-row-n">{i+1}</span>
+              <input className="cp-in" style={{flex:2}} value={r.name||""} placeholder="Descripción"
+                onChange={e=>{const rws=[...cfg.rows];rws[i]={...r,name:e.target.value};patch({rows:rws});}}/>
+              <input className="cp-in" style={{flex:1}} value={r.price||""} placeholder="Valor"
+                onChange={e=>{const rws=[...cfg.rows];rws[i]={...r,price:e.target.value};patch({rows:rws});}}/>
+              <input className="cp-in" style={{width:44}} value={r.flag||""} placeholder="⭐"
+                onChange={e=>{const rws=[...cfg.rows];rws[i]={...r,flag:e.target.value};patch({rows:rws});}}/>
+            </div>
+          ))}
+          <button className="cp-add-row" onClick={()=>patch({rows:[...(cfg.rows||[]),{name:"",price:"",flag:""}]})}>
+            <Ic d={I.plus} size={13}/> Agregar fila
+          </button>
+        </div>
+      ) : (
+        <div className="cp-sec">
+          <TF cfg={cfg} patch={patch} label="Título" fk="title" sk="titleShow" ck="titleColor" multi szKey="titleFontSize" szDef={116} szMin={32} szMax={320}/>
+          <TF cfg={cfg} patch={patch} label="Bajada" fk="subtitle" sk="subShow" ck="subColor" multi notUsed={!s.sub} szKey="subFontSize" szDef={40} szMin={16} szMax={130}/>
+          {hasPrice ? (
+            <div className="cp-field">
+              <div className="cp-fhead">
+                <span className="cp-label">Precio principal</span>
+                <BrandPicker sm v={cfg.priceColor} on={v=>patch({priceColor:v})}/>
+              </div>
+              <input className="cp-in cp-price-in" value={cfg.priceMain||""} placeholder="$0.000" onChange={e=>patch({priceMain:e.target.value})}/>
+            </div>
+          ) : null}
+        </div>
+      )}
+
+      {/* ── Color de fondo + fotos ── */}
+      <div className="cp-sec">
+        <div className="cp-sec-lbl">COLOR DE FONDO</div>
+        <div className="bg-colors">
+          {[["red","#F40000","Rojo"],["dark","#2D2926","Negro"],["white","#F0F0F1","Blanco"],
+            ["yellow","#FFD400","Amarillo"],["celeste","#5AA0DC","Celeste"],["cream","#E7E4E0","Crema"]].map(([k,bg,lbl])=>(
+            <button key={k} className={"bg-col"+(cfg.bg===k?" is-on":"")} onClick={()=>patch({bg:k})}>
+              <span className="bg-col-sw" style={{background:bg}}></span>{lbl}
+            </button>
+          ))}
+        </div>
+        <div className="qp-photo-row">
+          <button className={"qp-photo-btn"+(cfg.bgImage?" is-has":"")}
+            onClick={()=>bgRef.current&&bgRef.current.click()}>
+            <Ic d={I.img} size={14}/>{cfg.bgImage?"Cambiar fondo":"+ Foto fondo"}
+          </button>
+          <button className={"qp-photo-btn"+(cfg.photo?" is-has":"")}
+            onClick={()=>phRef.current&&phRef.current.click()}>
+            <Ic d={I.botl} size={14}/>{cfg.photo?"Cambiar producto":"+ Foto producto"}
+          </button>
+        </div>
+        {cfg.bgImage ? (
+          <div style={{marginTop:8}}>
+            <BgRepositioner src={cfg.bgImage} view={cfg.bgView} W={W} H={H} onChange={patchBgView}/>
+            <button className="linkbtn" style={{marginTop:4,fontSize:11}} onClick={()=>patch({bgImage:null,bgView:{s:1,x:0,y:0}})}>Quitar foto de fondo</button>
+          </div>
+        ) : null}
+        {cfg.photo ? (
+          <div style={{marginTop:8}}>
+            <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:6}}>
+              <div className="cp-photo-tn" style={{backgroundImage:`url(${cfg.photo})`,backgroundSize:"contain",backgroundRepeat:"no-repeat"}}></div>
+              <button className="linkbtn" style={{fontSize:11}} onClick={()=>patch({photo:null})}>Quitar foto</button>
+            </div>
+            <div className="cp-size-row">
+              <span className="cp-size-lbl">Zoom foto</span>
+              <Slider v={(cfg.photoView&&cfg.photoView.s)||1} min={0.3} max={3} step={0.02}
+                on={s=>patchPhotoView({s})}/>
+              <span className="cp-size-val">{Math.round(((cfg.photoView&&cfg.photoView.s)||1)*100)}%</span>
+            </div>
+          </div>
+        ) : null}
+        <input ref={bgRef} type="file" accept="image/*" style={{display:"none"}}
+          onChange={e=>{const f=e.target.files[0];if(f)onBgFile(f);e.target.value="";}}/>
+        <input ref={phRef} type="file" accept="image/*" style={{display:"none"}}
+          onChange={e=>{const f=e.target.files[0];if(f)onPhotoFile(f);e.target.value="";}}/>
+      </div>
+
+      {/* ── Acordeón avanzado ── */}
+      <button className="qp-adv-toggle" onClick={()=>setAdvOpen(o=>!o)}>
+        {advOpen?"▴ Ocultar ajustes avanzados":"▾ Ajustes avanzados"}
+      </button>
+      {advOpen ? (
+        <div className="cp-sec">
+          {/* CTA */}
+          <TF cfg={cfg} patch={patch} label="CTA / botón" fk="cta" sk="ctaShow" ck="ctaColor" notUsed={!s.cta||s.cta==="none"} szKey="ctaFontSize" szDef={42} szMin={16} szMax={110}/>
+          {cfg.ctaShow !== false ? (
+            <div className="cp-field">
+              <div className="cp-label" style={{marginBottom:6}}>Formato del botón</div>
+              <FmtPicker options={CTA_FMTS} value={cfg.ctaFormat||"auto"} onChange={v=>patch({ctaFormat:v})}/>
+            </div>
+          ) : null}
+          <TF cfg={cfg} patch={patch} label="Handle / @arroba" fk="handle" sk="handleShow" ck="handleColor" notUsed={s.handle===false} szKey="handleFontSize" szDef={28} szMin={14} szMax={72}/>
+
+          {/* Etiqueta */}
+          <div className="cp-sec-head" style={{marginTop:10}}>
+            <span className="cp-sec-lbl">ETIQUETA</span>
+            <Toggle v={cfg.badgeShow} on={v=>patch({badgeShow:v})}/>
+          </div>
+          {cfg.badgeShow ? (
+            <>
+              <div className="cp-field">
+                <input className="cp-in" value={cfg.badge||""} placeholder="OFERTA" onChange={e=>patch({badge:e.target.value})}/>
+              </div>
+              <div className="cp-field">
+                <div className="badge-colors">
+                  {[["yellow","#FFD400","#2D2926","Amarillo"],["red","#F40000","#fff","Rojo"],
+                    ["white","#F0F0F1","#F40000","Blanco"],["dark","#2D2926","#fff","Negro"],
+                    ["celeste","#5AA0DC","#fff","Celeste"]].map(([k,bg,fg,lbl])=>(
+                    <button key={k} className={"badge-sw"+(cfg.badgeStyle===k?" is-on":"")}
+                      style={{background:bg,color:fg,borderColor:cfg.badgeStyle===k?"var(--accent)":"transparent"}}
+                      onClick={()=>patch({badgeStyle:k})}>{lbl}</button>
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : null}
+
+          {/* Precio avanzado (solo si hay precio) */}
+          {hasPrice ? (
+            <div style={{marginTop:8}}>
+              <div className="cp-sec-head">
+                <span className="cp-sec-lbl">PRECIO DETALLADO</span>
+                <Toggle v={cfg.showPrice} on={v=>patch({showPrice:v})}/>
+              </div>
+              {cfg.showPrice ? (
+                <>
+                  <div className="cp-field">
+                    <div className="cp-label" style={{marginBottom:6}}>Formato</div>
+                    <FmtPicker options={PRICE_FMTS} value={cfg.priceFormat||"auto"} onChange={v=>patch({priceFormat:v})}/>
+                  </div>
+                  <div className="cp-row2">
+                    <div className="cp-field" style={{flex:1}}>
+                      <div className="cp-label">Eyebrow</div>
+                      <input className="cp-in" value={cfg.priceEyebrow||""} placeholder="SOLO" onChange={e=>patch({priceEyebrow:e.target.value})}/>
+                    </div>
+                    <div className="cp-field" style={{flex:1}}>
+                      <div className="cp-label">Unidad</div>
+                      <input className="cp-in" value={cfg.priceUnit||""} placeholder="c/u" onChange={e=>patch({priceUnit:e.target.value})}/>
+                    </div>
+                  </div>
+                  <div className="cp-field">
+                    <div className="cp-label">Tachado</div>
+                    <input className="cp-in" value={cfg.priceStrike||""} placeholder="$0.000" onChange={e=>patch({priceStrike:e.target.value})}/>
+                  </div>
+                  <div className="cp-size-row">
+                    <span className="cp-size-lbl">Tamaño</span>
+                    <Slider v={cfg.priceFontSize||90} min={30} max={260} step={2} on={v=>patch({priceFontSize:v})}/>
+                    <span className="cp-size-val">{cfg.priceFontSize||90}px</span>
+                  </div>
+                </>
+              ) : null}
+            </div>
+          ) : null}
+
+          {/* Logo */}
+          <div className="cp-sec-head" style={{marginTop:10}}>
+            <span className="cp-sec-lbl">LOGO</span>
+            <Toggle v={cfg.logoShow!==false} on={v=>patch({logoShow:v})}/>
+          </div>
+          {cfg.logoShow !== false ? (
+            <div className="cp-row2" style={{alignItems:"flex-start"}}>
+              <div>
+                <div className="cp-label" style={{marginBottom:6}}>Posición</div>
+                <LogoGrid v={cfg.logoPos} on={v=>patch({logoPos:v})}/>
+              </div>
+              <div style={{flex:1}}>
+                <div className="cp-label" style={{marginBottom:6}}>Color logo</div>
+                <div style={{display:"flex",gap:5,marginBottom:8}}>
+                  {[["auto","var(--ink-200)","Auto"],["white","#F0F0F1","B"],["red","#F40000","R"],["black","#2D2926","N"]].map(([k,bg,lbl])=>(
+                    <button key={k} aria-pressed={cfg.logoColor===k} title={lbl}
+                      style={{width:24,height:24,borderRadius:5,border:"2px solid",borderColor:cfg.logoColor===k?"var(--accent)":"rgba(0,0,0,.12)",background:bg,cursor:"pointer"}}
+                      onClick={()=>patch({logoColor:k})}/>
+                  ))}
+                </div>
+                <div className="cp-label" style={{marginBottom:4}}>Tamaño {Math.round((cfg.logoSize||1)*100)}%</div>
+                <Slider v={cfg.logoSize||1} min={0.4} max={2} step={0.05} on={v=>patch({logoSize:v})}/>
+              </div>
+            </div>
+          ) : null}
+
+          {/* Posición */}
+          <div className="cp-sec-head" style={{marginTop:10}}>
+            <span className="cp-sec-lbl">POSICIÓN</span>
+          </div>
+          <PosPanel sel={sel} cfg={cfg} W={W} H={H} scale={scale}
+            locked={locked} toggleLock={toggleLock} patch={patchPos} setSel={setSel}/>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 /* ── Bottom tab bar móvil ────────────────────────────────────────────────── */
 const MOB_TABS = [
   {id:"plantillas", label:"Plantillas", ic:I.sq},
   {id:"canvas",     label:"Canvas",     ic:I.eye},
-  {id:"ajustes",    label:"Ajustes",    ic:I.pin},
+  {id:"editar",     label:"Editar",     ic:I.chk},
+  {id:"avanzado",   label:"Avanzado",   ic:I.pin},
 ];
 function MobTabBar({ active, onTab }) {
   return (
@@ -716,7 +936,7 @@ function App() {
   const [dragOver, setDO]   = useState(false);
   const [safeOn, setSafeOn] = useState(false);
   const [gridOn, setGridOn] = useState(false);
-  const [tab, setTab]       = useState("texto");
+  const [advOpen, setAdvOpen] = useState(false);
   const [sel, setSel]       = useState(null);
   const [locked, setLocked] = useState(new Set());
   const [snaps, setSnaps]   = useState([]);
@@ -776,12 +996,23 @@ function App() {
   const OFFKEYS=["titleOff","subOff","priceOff","ctaOff","handleOff","logoOff","badgeOff","burstOff"];
   const applyTmpl=useCallback(item=>{
     const it=item.cfg,ns=(it.struct&&it.struct.photo)||"none";
+    const isDatos = item.cat === "datos";
     const next={
       ...it,
-      title:cfg.title,subtitle:cfg.subtitle,badge:cfg.badge,
-      priceEyebrow:cfg.priceEyebrow,priceMain:cfg.priceMain,priceUnit:cfg.priceUnit,
-      priceStrike:cfg.priceStrike,cta:cfg.cta,handle:cfg.handle,rows:cfg.rows,
-      badgeStyle:cfg.badgeStyle,badgeShow:cfg.badgeShow,showPrice:cfg.showPrice,
+      // Para plantillas "datos": conservar su contenido pre-cargado; para otras: conservar el del usuario
+      title:isDatos?it.title:cfg.title,
+      subtitle:isDatos?it.subtitle:cfg.subtitle,
+      badge:isDatos?it.badge:cfg.badge,
+      priceEyebrow:isDatos?it.priceEyebrow:cfg.priceEyebrow,
+      priceMain:isDatos?it.priceMain:cfg.priceMain,
+      priceUnit:isDatos?it.priceUnit:cfg.priceUnit,
+      priceStrike:isDatos?it.priceStrike:cfg.priceStrike,
+      cta:isDatos?it.cta:cfg.cta,
+      handle:isDatos?it.handle:cfg.handle,
+      rows:isDatos?it.rows:cfg.rows,
+      badgeStyle:isDatos?it.badgeStyle:cfg.badgeStyle,
+      badgeShow:isDatos?it.badgeShow:cfg.badgeShow,
+      showPrice:cfg.showPrice,
       logoShow:cfg.logoShow,logoPos:cfg.logoPos,logoColor:cfg.logoColor,logoSize:cfg.logoSize,
       bgImage:cfg.bgImage,bgView:cfg.bgView,bgInk:cfg.bgInk,
       titleColor:cfg.titleColor,subColor:cfg.subColor,priceColor:cfg.priceColor,
@@ -961,23 +1192,14 @@ function App() {
           ):null}
         </main>
 
-        {/* DERECHA: propiedades */}
+        {/* DERECHA: quick panel */}
         <aside className="app-right">
-          <div className="ptabs">
-            {[["texto","Texto",I.sq],["fondo","Fondo",I.img],["posicion","Posición",I.pin]].map(([id,lbl,ic])=>(
-              <button key={id} className={"ptab"+(tab===id?" is-on":"")} onClick={()=>setTab(id)}>
-                <Ic d={ic} size={13}/>{lbl}
-              </button>
-            ))}
-          </div>
-          <div className="ptab-body">
-            {tab==="texto"?<ContentPanel cfg={cfg} patch={patch}/>:null}
-            {tab==="fondo"?<BgPanel cfg={cfg} W={W} H={H} patch={patch}
-              patchBgView={patchBgView} patchPhotoView={patchPhotoView}
-              onBgFile={loadBg} onPhotoFile={loadPh}/>:null}
-            {tab==="posicion"?<PosPanel sel={sel} cfg={cfg} W={W} H={H} scale={scale}
-              locked={locked} toggleLock={toggleLock} patch={patchPos} setSel={setSel}/>:null}
-          </div>
+          <QuickPanel cfg={cfg} patch={patch} W={W} H={H}
+            sel={sel} setSel={setSel} scale={scale}
+            locked={locked} toggleLock={toggleLock} patchPos={patchPos}
+            patchBgView={patchBgView} patchPhotoView={patchPhotoView}
+            onBgFile={loadBg} onPhotoFile={loadPh}
+            advOpen={advOpen} setAdvOpen={setAdvOpen}/>
         </aside>
       </div>
 
@@ -989,22 +1211,21 @@ function App() {
       <MobSheet open={mobTab==="plantillas"} onClose={()=>setMobTab("canvas")}>
         <TemplatePanel baseCfg={cfg} W={W} H={H} onApply={t=>{applyTmpl(t);setMobTab("canvas");}}/>
       </MobSheet>
-      <MobSheet open={mobTab==="ajustes"} onClose={()=>setMobTab("canvas")}>
-        <div className="ptabs" style={{padding:"0 16px"}}>
-          {[["texto","Texto",I.sq],["fondo","Fondo",I.img],["posicion","Posición",I.pin]].map(([id,lbl,ic])=>(
-            <button key={id} className={"ptab"+(tab===id?" is-on":"")} onClick={()=>setTab(id)}>
-              <Ic d={ic} size={13}/>{lbl}
-            </button>
-          ))}
-        </div>
-        <div>
-          {tab==="texto"?<ContentPanel cfg={cfg} patch={patch}/>:null}
-          {tab==="fondo"?<BgPanel cfg={cfg} W={W} H={H} patch={patch}
-            patchBgView={patchBgView} patchPhotoView={patchPhotoView}
-            onBgFile={loadBg} onPhotoFile={loadPh}/>:null}
-          {tab==="posicion"?<PosPanel sel={sel} cfg={cfg} W={W} H={H} scale={scale}
-            locked={locked} toggleLock={toggleLock} patch={patchPos} setSel={setSel}/>:null}
-        </div>
+      <MobSheet open={mobTab==="editar"} onClose={()=>setMobTab("canvas")}>
+        <QuickPanel cfg={cfg} patch={patch} W={W} H={H}
+          sel={sel} setSel={setSel} scale={scale}
+          locked={locked} toggleLock={toggleLock} patchPos={patchPos}
+          patchBgView={patchBgView} patchPhotoView={patchPhotoView}
+          onBgFile={loadBg} onPhotoFile={loadPh}
+          advOpen={false} setAdvOpen={()=>{setMobTab("avanzado");}}/>
+      </MobSheet>
+      <MobSheet open={mobTab==="avanzado"} onClose={()=>setMobTab("canvas")}>
+        <QuickPanel cfg={cfg} patch={patch} W={W} H={H}
+          sel={sel} setSel={setSel} scale={scale}
+          locked={locked} toggleLock={toggleLock} patchPos={patchPos}
+          patchBgView={patchBgView} patchPhotoView={patchPhotoView}
+          onBgFile={loadBg} onPhotoFile={loadPh}
+          advOpen={true} setAdvOpen={()=>{setMobTab("editar");}}/>
       </MobSheet>
 
       {/* TWEAKS */}

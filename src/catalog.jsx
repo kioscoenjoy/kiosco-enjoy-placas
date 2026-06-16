@@ -34,6 +34,7 @@
 
   // ---- categorías = USO ------------------------------------------------
   const CATEGORIES = [
+    { key: "datos", name: "Datos del local", icon: "info" },
     { key: "oferta", name: "Ofertas & Promos", icon: "flame" },
     { key: "producto", name: "Producto & Precio", icon: "bottle" },
     { key: "combo", name: "Combos & Packs", icon: "combo" },
@@ -179,6 +180,91 @@
       { title: "Aguante\nla Scaloneta", subtitle: "Sumate al Mundial con Enjoy", cta: "Ver combos", handle: "@kioscoenjoy" }),
     S("mundial", "Combo + burst ahorro", { photo: "right", deco: "rays", price: "burst", burstPos: "tr", stackH: "l", stackV: "b", stackW: 0.55, title: "l", sub: true, badge: "none", bg: "dark", ink: "light" },
       { title: "Combo\nPrevia Mundial", subtitle: "Birra + snacks + hielo", priceEyebrow: "AHORRÁ", priceMain: "25%", handle: "@kioscoenjoy" }),
+  ];
+
+  /* ============== DATOS DEL LOCAL · KIOSCO ENJOY ============== */
+  C.datos = [
+    /* 1 · Horarios regulares completos */
+    S("datos", "Horarios regulares", { kind: "list", badge: "tr", bg: "dark", ink: "light" },
+      { title: "Horario\nde atención", badge: "HORARIOS", badgeStyle: "yellow",
+        rows: [
+          { name: "Lun a Sáb",   price: "8:00 a 14:00",  flag: "☀️" },
+          { name: "",            price: "17:00 a 22:00", flag: "🌙" },
+          { name: "Dom y feriados", price: "10:00 a 14:00", flag: "☀️" },
+          { name: "",            price: "18:00 a 22:00", flag: "🌙" },
+        ],
+        handle: "@kioscoenjoy" }),
+
+    /* 2 · Horario feriado */
+    S("datos", "Horario feriado", { photo: "none", logo: "tc", stackH: "c", stackV: "m", price: "none", title: "l", sub: true, badge: "inline", bg: "dark" },
+      { badge: "FERIADO", title: "Horario\nferiado", subtitle: "10:00 a 14:00 / 18:00 a 22:00", handle: "@kioscoenjoy" }),
+
+    /* 3 · Horario verano / extendido */
+    S("datos", "Horario verano", { kind: "list", badge: "tr", bg: "red", ink: "light" },
+      { title: "Horario\nverano", badge: "VERANO",
+        rows: [
+          { name: "Lun a Vie",  price: "8:00 a 14:00",  flag: "" },
+          { name: "",           price: "17:00 a 22:00", flag: "" },
+          { name: "Sáb",       price: "8:00 a 22:00",  flag: "🔥" },
+          { name: "Dom",        price: "10:00 a 22:00", flag: "" },
+        ],
+        handle: "@kioscoenjoy" }),
+
+    /* 4 · Cerrado hoy */
+    S("datos", "Cerrado hoy", { photo: "none", logo: "tc", stackH: "c", stackV: "m", price: "none", title: "xl", sub: true, badge: "inline", bg: "dark" },
+      { badge: "CERRADO", title: "Hoy\ncerrados", subtitle: "Reabrimos el lunes a las 8:00 h", handle: "@kioscoenjoy" }),
+
+    /* 5 · Medios de pago */
+    S("datos", "Medios de pago", { kind: "list", badge: "tr", bg: "dark", ink: "light" },
+      { title: "Medios\nde pago", badge: "INFO",
+        rows: [
+          { name: "Efectivo",    price: "✓", flag: "" },
+          { name: "Débito",      price: "✓", flag: "" },
+          { name: "Crédito",     price: "✓", flag: "" },
+          { name: "MercadoPago", price: "✓", flag: "💚" },
+          { name: "Naranja X",   price: "✓", flag: "🟠" },
+        ],
+        handle: "@kioscoenjoy" }),
+
+    /* 6 · Dirección */
+    S("datos", "Dirección", { photo: "none", logo: "tc", stackH: "c", stackV: "m", price: "none", title: "l", sub: true, badge: "inline", bg: "red" },
+      { badge: "📍 DÓNDE ESTAMOS", title: "Ituzaingo 1410\nRío Cuarto", subtitle: "Pasá a buscarlo o pedí por WhatsApp", handle: "@kioscoenjoy" }),
+
+    /* 7 · WhatsApp / Contacto */
+    S("datos", "WhatsApp", { photo: "none", logo: "tc", stackH: "c", stackV: "m", price: "none", cta: "pill", title: "l", sub: true, badge: "inline", bg: "dark" },
+      { badge: "💬 CONTACTO", title: "Consultá\npor WhatsApp", subtitle: "358 422-3636", cta: "Escribinos ahora", handle: "@kioscoenjoy" }),
+
+    /* 8 · Delivery */
+    S("datos", "Delivery", { photo: "none", logo: "tc", stackH: "c", stackV: "m", price: "none", cta: "pill", title: "xl", sub: true, badge: "none", bg: "celeste" },
+      { title: "Hacemos\ndelivery 🛵", subtitle: "Pedí y te lo llevamos a casa", cta: "Pedí por WhatsApp", handle: "@kioscoenjoy" }),
+
+    /* 9 · Wi-Fi */
+    S("datos", "Wi-Fi del local", { kind: "list", badge: "tr", bg: "white", ink: "dark" },
+      { title: "Wi-Fi\ngratis", badge: "📶 WIFI",
+        rows: [
+          { name: "Red",        price: "KioscoEnjoy", flag: "" },
+          { name: "Clave",      price: "—",           flag: "" },
+        ],
+        handle: "@kioscoenjoy" }),
+
+    /* 10 · Aviso especial */
+    S("datos", "Aviso especial", { photo: "none", stackH: "l", stackV: "m", stackW: 0.86, price: "none", title: "l", sub: true, badge: "inline", bg: "red" },
+      { badge: "⚠️ ATENCIÓN", title: "Novedad\nimportante", subtitle: "Escribí aquí tu mensaje", handle: "@kioscoenjoy" }),
+
+    /* 11 · Dirección + contacto (lista) */
+    S("datos", "Info del local", { kind: "list", badge: "tr", bg: "red", ink: "light" },
+      { title: "Kiosco\nEnjoy", badge: "INFO",
+        rows: [
+          { name: "📍 Dirección", price: "Ituzaingo 1410", flag: "" },
+          { name: "📞 WhatsApp",  price: "358 422-3636",  flag: "" },
+          { name: "📸 Instagram", price: "@kioscoenjoy",  flag: "" },
+          { name: "⏰ Horarios",  price: "Lun-Sáb 8-22",  flag: "" },
+        ],
+        handle: "@kioscoenjoy" }),
+
+    /* 12 · Próximos feriados / aviso con fecha */
+    S("datos", "Feriado · aviso", { photo: "none", logo: "tc", stackH: "c", stackV: "m", price: "none", title: "l", sub: true, badge: "inline", bg: "dark" },
+      { badge: "📅 FERIADO", title: "Atendemos\neste feriado", subtitle: "10:00 a 14:00 / 18:00 a 22:00", handle: "@kioscoenjoy" }),
   ];
 
   /* ============== G · LISTAS & CARTELERA ============== */
