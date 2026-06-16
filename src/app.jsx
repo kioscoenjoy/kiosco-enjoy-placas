@@ -427,6 +427,10 @@ function ElementPanel({ cfg, patch, W, H, patchBgView, patchPhotoView, onBgFile,
         <div className="ep-card ep-card-always">
           <div className="ep-card-header ep-card-header-static">
             <span className="ep-card-name">Items / Filas</span>
+            <div style={{display:"flex",gap:8,alignItems:"center"}}>
+              <BrandPicker sm v={cfg.titleColor} on={v=>patch({titleColor:v})}/>
+              <BrandPicker sm v={cfg.priceColor} on={v=>patch({priceColor:v})}/>
+            </div>
           </div>
           <div className="ep-card-body">
             {(cfg.rows||[]).map((r,i)=>(

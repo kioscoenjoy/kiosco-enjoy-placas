@@ -1,4 +1,4 @@
-const CACHE = "ke-placas-v6";
+const CACHE = "ke-placas-v7";
 const PRECACHE = [
   "./",
   "./index.html",

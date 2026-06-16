@@ -706,18 +706,21 @@ function ListPlaca({ cfg, s, W, H }) {
       <div className="p" style={s.kind === "grid"
         ? { left: sideL, right: sideR, bottom: rowsBottom, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 22 }
         : { left: sideL, right: sideR, bottom: rowsBottom }}>
-        {rows.map((r, i) => s.kind === "grid" ? (
+        {rows.map((r, i) => {
+          const rowNameCol = txCol(cfg.titleColor, c.fg);
+          const rowPriceCol = txCol(cfg.priceColor, s.ink === "dark" ? "var(--coke-red)" : "var(--promo)");
+          return s.kind === "grid" ? (
           <div key={i} style={{ background: s.ink === "dark" ? "#fff" : "rgba(255,255,255,.12)", borderRadius: 16, padding: "26px 28px" }}>
-            <div style={{ fontWeight: 700, fontStyle: "italic", fontSize: 44, color: c.fg }}>{r.name}</div>
-            <div style={{ fontWeight: 800, fontStyle: "italic", fontSize: 64, color: s.ink === "dark" ? "var(--coke-red)" : "var(--promo)" }}>{r.price}</div>
+            <div style={{ fontWeight: 700, fontStyle: "italic", fontSize: 44, color: rowNameCol }}>{r.name}</div>
+            <div style={{ fontWeight: 800, fontStyle: "italic", fontSize: 64, color: rowPriceCol }}>{r.price}</div>
           </div>
         ) : (
           <div key={i} style={{ display: "flex", alignItems: "center", gap: 24, borderBottom: `3px solid ${s.ink === "dark" ? "var(--ink-300)" : "rgba(255,255,255,.25)"}`, padding: "22px 0" }}>
-            <span style={{ flex: 1, fontWeight: 700, fontStyle: "italic", fontSize: 52, color: c.fg }}>{r.name}</span>
+            <span style={{ flex: 1, fontWeight: 700, fontStyle: "italic", fontSize: 52, color: rowNameCol }}>{r.name}</span>
             {r.flag ? <span style={{ background: "var(--promo)", color: "var(--black-c)", fontWeight: 800, fontStyle: "italic", fontSize: 32, padding: "6px 18px", borderRadius: 8 }}>{r.flag}</span> : null}
-            <span style={{ fontWeight: 800, fontStyle: "italic", fontSize: 64, color: s.ink === "dark" ? "var(--coke-red)" : "var(--promo)" }}>{r.price}</span>
+            <span style={{ fontWeight: 800, fontStyle: "italic", fontSize: 64, color: rowPriceCol }}>{r.price}</span>
           </div>
-        ))}
+        );})}
       </div>
       {editor && ctx && ctx.showGrid ? <ThirdsGrid W={W} H={H} /> : null}
       {editor ? <SnapGuidesOverlay /> : null}
