@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>Generador de Placas · Kiosco Enjoy</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#F40000"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Placas KE"/>
+  <link rel="apple-touch-icon" href="assets/icon-192.svg"/>
+
+  <!-- Fuentes y estilos base -->
+  <link rel="stylesheet" href="fonts.css"/>
+  <link rel="stylesheet" href="generator.css"/>
+
+  <!-- CDN: React 18 -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <!-- Babel standalone para JSX en el browser -->
+  <script src="https://unpkg.com/@babel/standalone@7.23.10/babel.min.js"></script>
+  <!-- html-to-image para captureSlide -->
+  <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"></script>
+  <!-- JSZip para export ZIP -->
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <!-- mp4-muxer + WebCodecs (reel export) -->
+  <script src="https://cdn.jsdelivr.net/npm/mp4-muxer@4.5.1/build/mp4-muxer.umd.min.js"></script>
+
+  <style>
+    /* layout base antes de que cargue generator.css */
+    html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+    #root { height: 100%; display: flex; flex-direction: column; }
+    #splash {
+      position: fixed; inset: 0; background: #2D2926;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 16px; z-index: 9999;
+      transition: opacity .4s;
+    }
+    #splash svg { width: 72px; height: 72px; }
+    #splash p { color: rgba(255,255,255,.6); font-family: system-ui,sans-serif; font-size: 14px; margin: 0; }
+    #splash.hidden { opacity: 0; pointer-events: none; }
+  </style>
+</head>
+<body>
+  <!-- Splash mientras carga -->
+  <div id="splash">
+    <svg viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+      <rect width="192" height="192" rx="40" fill="#F40000"/>
+      <text x="96" y="108" font-family="system-ui,sans-serif" font-weight="900"
+        font-style="italic" font-size="80" fill="#fff" text-anchor="middle">KE</text>
+      <text x="96" y="145" font-family="system-ui,sans-serif" font-weight="700"
+        font-size="22" letter-spacing="4" fill="#FFD400" text-anchor="middle">PLACAS</text>
+    </svg>
+    <p>Cargando…</p>
+  </div>
+
+  <div id="root"></div>
+
+  <!-- Recursos globales: logos -->
+  <script>
+    window.__resources = {
+      logoWhite: "assets/logo-white.svg",
+      logoRed:   "assets/logo-red.svg",
+      logoBlack: "assets/logo-black.svg",
+    };
+  </script>
+
+  <!-- Registro del service worker -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js").catch(e => console.warn("SW:", e));
+      });
+    }
+  </script>
+
+  <!-- Ocultar splash cuando la app esté lista -->
+  <script>
+    window.__hideSplash = function() {
+      const el = document.getElementById("splash");
+      if (el) { el.classList.add("hidden"); setTimeout(() => el.remove(), 450); }
+    };
+  </script>
+
+  <!-- JSX source files — cargados en orden por Babel standalone -->
+  <script type="text/babel" src="src/tweaks-panel.jsx"></script>
+  <script type="text/babel" src="src/placa.jsx"></script>
+  <script type="text/babel" src="src/catalog.jsx"></script>
+  <script type="text/babel" src="src/reel.jsx"></script>
+  <script type="text/babel" src="src/app.jsx"></script>
+</body>
+</html>

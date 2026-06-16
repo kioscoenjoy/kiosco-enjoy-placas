@@ -1,0 +1,42 @@
+/* Kiosco Enjoy — Exo 2 (self-hosted subset) + brand tokens for the Generator */
+@font-face { font-family:"Exo 2"; src:url("fonts/Exo2-Regular.ttf") format("truetype");        font-weight:400; font-style:normal; font-display:swap; }
+@font-face { font-family:"Exo 2"; src:url("fonts/Exo2-Italic.ttf") format("truetype");          font-weight:400; font-style:italic; font-display:swap; }
+@font-face { font-family:"Exo 2"; src:url("fonts/Exo2-Medium.ttf") format("truetype");          font-weight:500; font-style:normal; font-display:swap; }
+@font-face { font-family:"Exo 2"; src:url("fonts/Exo2-SemiBold.ttf") format("truetype");        font-weight:600; font-style:normal; font-display:swap; }
+@font-face { font-family:"Exo 2"; src:url("fonts/Exo2-Bold.ttf") format("truetype");            font-weight:700; font-style:normal; font-display:swap; }
+@font-face { font-family:"Exo 2"; src:url("fonts/Exo2-BoldItalic.ttf") format("truetype");      font-weight:700; font-style:italic; font-display:swap; }
+@font-face { font-family:"Exo 2"; src:url("fonts/Exo2-ExtraBold.ttf") format("truetype");       font-weight:800; font-style:normal; font-display:swap; }
+@font-face { font-family:"Exo 2"; src:url("fonts/Exo2-ExtraBoldItalic.ttf") format("truetype"); font-weight:800; font-style:italic; font-display:swap; }
+@font-face { font-family:"Exo 2"; src:url("fonts/Exo2-Black.ttf") format("truetype");           font-weight:900; font-style:normal; font-display:swap; }
+@font-face { font-family:"Exo 2"; src:url("fonts/Exo2-BlackItalic.ttf") format("truetype");     font-weight:900; font-style:italic; font-display:swap; }
+
+:root {
+  /* Brand core */
+  --coke-red:#F40000; --black-c:#2D2926; --brilliant-white:#F0F0F1;
+  /* Red scale */
+  --red-50:#FFEDEC; --red-100:#FFD2CF; --red-200:#FF9C96; --red-300:#FB6258;
+  --red-400:#F92E20; --red-500:#F40000; --red-600:#CE0202; --red-700:#A50404; --red-800:#7A0707;
+  /* Ink scale */
+  --ink-900:#2D2926; --ink-800:#413C38; --ink-700:#5A544F; --ink-600:#78716B;
+  --ink-500:#9A938C; --ink-400:#BEB8B2; --ink-300:#DAD6D1; --ink-200:#E8E5E1;
+  --ink-100:#F0F0F1; --ink-050:#F7F7F8; --white:#FFFFFF;
+  /* Semantic */
+  --bg:var(--ink-100); --bg-raised:var(--white); --bg-dark:var(--black-c);
+  --fg1:var(--ink-900); --fg2:var(--ink-700); --fg3:var(--ink-500);
+  --border:var(--ink-300); --border-strong:var(--ink-400);
+  --accent:var(--coke-red); --accent-hover:var(--red-600); --accent-press:var(--red-700);
+  --promo:#FFD400;
+  --success:#1E9E5A; --success-bg:#E3F5EB;
+  /* Type */
+  --font-display:"Exo 2", system-ui, sans-serif;
+  --font-body:"Exo 2", system-ui, sans-serif;
+  /* Radius */
+  --r-xs:4px; --r-sm:8px; --r-md:12px; --r-lg:18px; --r-xl:26px; --r-pill:999px;
+  /* Spacing */
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:20px; --sp-6:24px; --sp-8:32px; --sp-10:40px; --sp-12:48px; --sp-16:64px;
+  /* Shadows */
+  --shadow-sm:0 1px 2px rgba(45,41,38,.08), 0 1px 1px rgba(45,41,38,.04);
+  --shadow-md:0 4px 12px rgba(45,41,38,.10), 0 2px 4px rgba(45,41,38,.06);
+  --shadow-lg:0 12px 28px rgba(45,41,38,.14), 0 4px 8px rgba(45,41,38,.06);
+  --shadow-red:0 6px 18px rgba(244,0,0,.30);
+}
